@@ -1,0 +1,420 @@
+{
+  "meta": {
+    "app": "Cute Green Dinosaur 2D Platformer Sprite Sheet",
+    "version": "1.0",
+    "image": "master_spritesheet.png",
+    "format": "RGBA8888",
+    "frameSize": {
+      "width": 160,
+      "height": 160
+    },
+    "totalFrames": 55
+  },
+  "animations": {
+    "idle": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 0,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 0,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 0,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "run": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 4,
+        "x": 640,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 5,
+        "x": 800,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 6,
+        "x": 960,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 7,
+        "x": 1120,
+        "y": 160,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "walk": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 320,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 320,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 320,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 320,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 4,
+        "x": 640,
+        "y": 320,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 5,
+        "x": 800,
+        "y": 320,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "jump": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 480,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 480,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 480,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 480,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "double_jump": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 640,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 640,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 640,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 640,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "landing": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 800,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 800,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 800,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "dash": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 960,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 960,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 960,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 960,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "slide": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 1120,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 1120,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 1120,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "expressions": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 4,
+        "x": 640,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 5,
+        "x": 800,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 6,
+        "x": 960,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 7,
+        "x": 1120,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 8,
+        "x": 1280,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 9,
+        "x": 1440,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 10,
+        "x": 1600,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 11,
+        "x": 1760,
+        "y": 1280,
+        "width": 160,
+        "height": 160
+      }
+    ],
+    "actions": [
+      {
+        "frameIndex": 0,
+        "x": 0,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 1,
+        "x": 160,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 2,
+        "x": 320,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 3,
+        "x": 480,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 4,
+        "x": 640,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 5,
+        "x": 800,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      },
+      {
+        "frameIndex": 6,
+        "x": 960,
+        "y": 1440,
+        "width": 160,
+        "height": 160
+      }
+    ]
+  }
+}
