@@ -16,7 +16,13 @@ export type DinoExpression =
 
 export type JumpPhase = 'launch' | 'rise' | 'apex' | 'fall';
 
-export type ObstacleType = 'cactus_small' | 'cactus_tall' | 'cactus_flower' | 'rock';
+export type ObstacleType =
+  | 'cactus_small'
+  | 'cactus_tall'
+  | 'cactus_flower'
+  | 'rock'
+  | 'bird_low'
+  | 'bird_high';
 
 export interface HitBox {
   x: number;
@@ -33,6 +39,7 @@ export interface ObstacleEntity {
   width: number;
   height: number;
   passed: boolean;
+  animFrame?: number;
 }
 
 export interface CoinEntity {

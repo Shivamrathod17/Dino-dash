@@ -11,6 +11,8 @@ const OBSTACLE_SPRITES = {
   cactus1: require('../../assets/sprites/cactus1.png'),
   cactus2: require('../../assets/sprites/cactus2.png'),
   rock: require('../../assets/sprites/rock.png'),
+  bird1: require('../../assets/sprites/bird_fly1.png'),
+  bird2: require('../../assets/sprites/bird_fly2.png'),
 };
 
 export const ObstacleRenderer: React.FC<ObstacleRendererProps> = React.memo(({
@@ -25,6 +27,8 @@ export const ObstacleRenderer: React.FC<ObstacleRendererProps> = React.memo(({
           sprite = OBSTACLE_SPRITES.cactus2;
         } else if (obs.type === 'rock') {
           sprite = OBSTACLE_SPRITES.rock;
+        } else if (obs.type === 'bird_low' || obs.type === 'bird_high') {
+          sprite = (obs.animFrame ?? 0) === 1 ? OBSTACLE_SPRITES.bird2 : OBSTACLE_SPRITES.bird1;
         }
 
         const topPosition = groundY - obs.y - obs.height;

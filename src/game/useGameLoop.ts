@@ -386,13 +386,18 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
 
           const obstacleCenterX = spawnX + obstacle.width / 2;
 
-          // Spawn coins synchronized with player jump arc
-          if (Math.random() < 0.75) {
+          // Spawn coins synchronized with player path
+          if (obstacle.type === 'bird_high') {
+            // High flying bird: player runs safely under, spawn ground coins beneath
+            const groundCoinsX = spawnX + obstacle.width / 2 - 42;
+            const groundGroup = spawnGroundRunCoins(groundCoinsX, 3);
+            coinsRef.current.push(...groundGroup);
+          } else if (Math.random() < 0.70) {
             const coinGroup = spawnJumpArcCoins(obstacleCenterX, obstacle.height);
             coinsRef.current.push(...coinGroup);
-          } else if (nextGap > 360) {
+          } else if (nextGap > 340) {
             // In wide open gaps between obstacles, spawn ground coins to collect while running
-            const groundCoinsX = spawnX + obstacle.width + 100;
+            const groundCoinsX = spawnX + obstacle.width + 80;
             const groundGroup = spawnGroundRunCoins(groundCoinsX, 3);
             coinsRef.current.push(...groundGroup);
           }
@@ -405,6 +410,11 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
         for (let i = 0; i < obstaclesRef.current.length; i++) {
           const obs = obstaclesRef.current[i];
           obs.x -= moveDist;
+
+          // Animate flying bird wings (flapping up & down)
+          if (obs.type === 'bird_low' || obs.type === 'bird_high') {
+            obs.animFrame = Math.floor(Date.now() / 150) % 2;
+          }
 
           // Collision check
           if (invulnerableTimerRef.current <= 0 && !hitDetected) {

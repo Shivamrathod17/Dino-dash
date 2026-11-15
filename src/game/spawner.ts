@@ -1,6 +1,7 @@
 import { ObstacleEntity, ObstacleType, CoinEntity } from '../types/game';
 
 let nextEntityId = 1;
+const recentSpawnTypes: ObstacleType[] = [];
 
 export interface SpawnerState {
   lastObstacleX: number;
@@ -10,6 +11,7 @@ export interface SpawnerState {
 }
 
 export function createInitialSpawnerState(): SpawnerState {
+  recentSpawnTypes.length = 0;
   return {
     lastObstacleX: 0,
     lastCoinGroupX: 0,
@@ -18,34 +20,66 @@ export function createInitialSpawnerState(): SpawnerState {
   };
 }
 
-export function getObstacleDimensions(type: ObstacleType): { width: number; height: number } {
+export function getObstacleDimensions(type: ObstacleType): { width: number; height: number; y: number } {
   switch (type) {
     case 'cactus_small':
-      return { width: 44, height: 65 };
+      return { width: 44, height: 65, y: 0 };
     case 'cactus_tall':
-      return { width: 52, height: 84 };
+      return { width: 52, height: 86, y: 0 };
     case 'cactus_flower':
-      return { width: 50, height: 82 };
+      return { width: 50, height: 82, y: 0 };
     case 'rock':
-      return { width: 50, height: 44 };
+      // Stone / Rock sitting low on the ground
+      return { width: 52, height: 44, y: 0 };
+    case 'bird_low':
+      // Low flying bird/pterodactyl: flies just above ground, player jumps over
+      return { width: 58, height: 46, y: 30 };
+    case 'bird_high':
+      // High flying bird/pterodactyl: flies high in the air, player runs underneath safely
+      return { width: 58, height: 46, y: 92 };
   }
 }
 
+/**
+ * Picks diverse obstacles right from early game:
+ * cacti, rocks/stones, low flying birds, high flying birds
+ * with anti-repetition so obstacles stay fresh and engaging!
+ */
 export function pickObstacleType(score: number): ObstacleType {
-  const roll = Math.random();
-  if (score < 250) {
-    return roll < 0.6 ? 'cactus_small' : 'cactus_tall';
-  } else if (score < 600) {
-    if (roll < 0.4) return 'cactus_small';
-    if (roll < 0.75) return 'cactus_tall';
-    return 'cactus_flower';
-  } else {
-    // Advanced: All types including spiked rock
-    if (roll < 0.30) return 'cactus_small';
-    if (roll < 0.55) return 'cactus_tall';
-    if (roll < 0.80) return 'cactus_flower';
-    return 'rock';
+  const pool: { type: ObstacleType; weight: number }[] = [
+    { type: 'cactus_small', weight: 24 },
+    { type: 'cactus_flower', weight: 22 },
+    { type: 'rock', weight: 24 },
+    { type: 'cactus_tall', weight: score > 100 ? 15 : 6 },
+    { type: 'bird_low', weight: 22 },
+    { type: 'bird_high', weight: score > 60 ? 18 : 8 },
+  ];
+
+  // Strongly disincentivize repeating the last spawned type
+  const lastType = recentSpawnTypes[recentSpawnTypes.length - 1];
+  const adjustedPool = pool.map((item) => {
+    let w = item.weight;
+    if (item.type === lastType) {
+      w = Math.max(2, Math.floor(w * 0.20));
+    }
+    return { type: item.type, weight: w };
+  });
+
+  const totalWeight = adjustedPool.reduce((sum, item) => sum + item.weight, 0);
+  let rnd = Math.random() * totalWeight;
+  let picked: ObstacleType = adjustedPool[0].type;
+  for (const item of adjustedPool) {
+    if (rnd < item.weight) {
+      picked = item.type;
+      break;
+    }
+    rnd -= item.weight;
   }
+
+  recentSpawnTypes.push(picked);
+  if (recentSpawnTypes.length > 3) recentSpawnTypes.shift();
+
+  return picked;
 }
 
 export function spawnObstacle(
@@ -60,15 +94,16 @@ export function spawnObstacle(
     id: `obs_${nextEntityId++}`,
     type,
     x: spawnX,
-    y: 0,
+    y: dims.y,
     width: dims.width,
     height: dims.height,
     passed: false,
+    animFrame: 0,
   };
 
   // Safe minimum distance scaling with speed so the jump is always humanly possible
-  const minSafeDistance = 240 + speed * 0.45;
-  const randomAdditionalGap = Math.random() * 220;
+  const minSafeDistance = 250 + speed * 0.45;
+  const randomAdditionalGap = Math.random() * 200;
   const nextGap = minSafeDistance + randomAdditionalGap;
 
   return { obstacle, nextGap };
