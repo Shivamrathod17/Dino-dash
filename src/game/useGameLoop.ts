@@ -23,6 +23,7 @@ import {
   spawnCoinPattern,
   spawnJumpArcCoins,
   spawnGroundRunCoins,
+  resetSpawnerForNewRun,
 } from './spawner';
 import { AudioManager } from '../audio/audio';
 import { StorageManager } from '../storage/storage';
@@ -158,6 +159,7 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   const startGame = useCallback(() => {
     AudioManager.playButton();
     setIsNewHighScore(false);
+    resetSpawnerForNewRun();
     isRevivingRef.current = false;
     isRevivingInProgressRef.current = false;
     invulnerableTimerRef.current = 0;
@@ -226,6 +228,7 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   // Go to Home
   const returnToHome = useCallback(() => {
     AudioManager.playButton();
+    resetSpawnerForNewRun();
     jumpBufferTimerRef.current = 0;
     revivesCountRef.current = 0;
     setRevivesCount(0);
@@ -392,6 +395,11 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
             const groundCoinsX = spawnX + obstacle.width / 2 - 42;
             const groundGroup = spawnGroundRunCoins(groundCoinsX, 3);
             coinsRef.current.push(...groundGroup);
+          } else if (obstacle.type === 'eagle') {
+            // Eagle swoops at mid-height (y=40): spawn ground coins ahead
+            const groundCoinsX = spawnX + obstacle.width + 60;
+            const groundGroup = spawnGroundRunCoins(groundCoinsX, 3);
+            coinsRef.current.push(...groundGroup);
           } else if (Math.random() < 0.70) {
             const coinGroup = spawnJumpArcCoins(obstacleCenterX, obstacle.height);
             coinsRef.current.push(...coinGroup);
@@ -411,8 +419,8 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
           const obs = obstaclesRef.current[i];
           obs.x -= moveDist;
 
-          // Animate flying bird wings (flapping up & down)
-          if (obs.type === 'bird_low' || obs.type === 'bird_high') {
+          // Animate flying wings (flapping up & down for birds and eagles)
+          if (obs.type === 'bird_low' || obs.type === 'bird_high' || obs.type === 'eagle') {
             obs.animFrame = Math.floor(Date.now() / 150) % 2;
           }
 

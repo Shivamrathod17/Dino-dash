@@ -18,8 +18,8 @@ export function getDinoObstacleHitBox(dino: DinoEntity, groundY: number): HitBox
 export function getObstacleHitBox(obstacle: ObstacleEntity, groundY: number): HitBox {
   const screenY = groundY - obstacle.y - obstacle.height;
 
-  if (obstacle.type === 'bird_low' || obstacle.type === 'bird_high') {
-    // Flying bird hitbox: body is centered, wings spread
+  if (obstacle.type === 'bird_low' || obstacle.type === 'bird_high' || obstacle.type === 'eagle') {
+    // Flying bird / eagle hitbox: body is centered, wings spread
     const insetX = obstacle.width * 0.15;
     const insetY = obstacle.height * 0.18;
     return {

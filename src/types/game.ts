@@ -22,7 +22,8 @@ export type ObstacleType =
   | 'cactus_flower'
   | 'rock'
   | 'bird_low'
-  | 'bird_high';
+  | 'bird_high'
+  | 'eagle';
 
 export interface HitBox {
   x: number;

@@ -1,7 +1,12 @@
 import { ObstacleEntity, ObstacleType, CoinEntity } from '../types/game';
 
 let nextEntityId = 1;
-const recentSpawnTypes: ObstacleType[] = [];
+
+export type ObstacleCategory = 'stone' | 'bird' | 'cactus' | 'eagle';
+
+let globalRunCounter = 0;
+let lastSpawnedCategory: ObstacleCategory | null = null;
+let isFirstSpawnOfRun = true;
 
 export interface SpawnerState {
   lastObstacleX: number;
@@ -11,13 +16,40 @@ export interface SpawnerState {
 }
 
 export function createInitialSpawnerState(): SpawnerState {
-  recentSpawnTypes.length = 0;
+  resetSpawnerForNewRun();
   return {
     lastObstacleX: 0,
     lastCoinGroupX: 0,
     minObstacleGap: 240,
     nextObstacleSpawnDistance: 320,
   };
+}
+
+/**
+ * Resets spawner state for each new game run.
+ * Increments globalRunCounter so every single game run starts with
+ * a DIFFERENT obstacle category!
+ */
+export function resetSpawnerForNewRun(): void {
+  globalRunCounter += 1;
+  lastSpawnedCategory = null;
+  isFirstSpawnOfRun = true;
+}
+
+export function getCategoryForType(type: ObstacleType): ObstacleCategory {
+  switch (type) {
+    case 'cactus_small':
+    case 'cactus_tall':
+    case 'cactus_flower':
+      return 'cactus';
+    case 'rock':
+      return 'stone';
+    case 'bird_low':
+    case 'bird_high':
+      return 'bird';
+    case 'eagle':
+      return 'eagle';
+  }
 }
 
 export function getObstacleDimensions(type: ObstacleType): { width: number; height: number; y: number } {
@@ -33,53 +65,57 @@ export function getObstacleDimensions(type: ObstacleType): { width: number; heig
       return { width: 52, height: 44, y: 0 };
     case 'bird_low':
       // Low flying bird/pterodactyl: flies just above ground, player jumps over
-      return { width: 58, height: 46, y: 30 };
+      return { width: 58, height: 46, y: 28 };
     case 'bird_high':
       // High flying bird/pterodactyl: flies high in the air, player runs underneath safely
       return { width: 58, height: 46, y: 92 };
+    case 'eagle':
+      // Flying Eagle: swoops across at mid-low height with animated flapping wings
+      return { width: 60, height: 48, y: 40 };
   }
 }
 
 /**
- * Picks diverse obstacles right from early game:
- * cacti, rocks/stones, low flying birds, high flying birds
- * with anti-repetition so obstacles stay fresh and engaging!
+ * Shuffled Category Spawning System:
+ * 1. Each new game run starts with a completely different category (Rotating order: Stone -> Bird -> Cactus -> Eagle).
+ * 2. Within a run, NEVER spawn two obstacles of the same category back-to-back.
+ * This guarantees high variety and maximum user engagement on every run!
  */
 export function pickObstacleType(score: number): ObstacleType {
-  const pool: { type: ObstacleType; weight: number }[] = [
-    { type: 'cactus_small', weight: 24 },
-    { type: 'cactus_flower', weight: 22 },
-    { type: 'rock', weight: 24 },
-    { type: 'cactus_tall', weight: score > 100 ? 15 : 6 },
-    { type: 'bird_low', weight: 22 },
-    { type: 'bird_high', weight: score > 60 ? 18 : 8 },
-  ];
+  const allCategories: ObstacleCategory[] = ['stone', 'bird', 'cactus', 'eagle'];
 
-  // Strongly disincentivize repeating the last spawned type
-  const lastType = recentSpawnTypes[recentSpawnTypes.length - 1];
-  const adjustedPool = pool.map((item) => {
-    let w = item.weight;
-    if (item.type === lastType) {
-      w = Math.max(2, Math.floor(w * 0.20));
-    }
-    return { type: item.type, weight: w };
-  });
+  let category: ObstacleCategory;
 
-  const totalWeight = adjustedPool.reduce((sum, item) => sum + item.weight, 0);
-  let rnd = Math.random() * totalWeight;
-  let picked: ObstacleType = adjustedPool[0].type;
-  for (const item of adjustedPool) {
-    if (rnd < item.weight) {
-      picked = item.type;
-      break;
-    }
-    rnd -= item.weight;
+  if (isFirstSpawnOfRun) {
+    // Rotating starting theme for each new run
+    category = allCategories[globalRunCounter % allCategories.length];
+    isFirstSpawnOfRun = false;
+  } else {
+    // Strictly filter out the last category so no two identical themes appear in a row!
+    const candidates = allCategories.filter((c) => c !== lastSpawnedCategory);
+    category = candidates[Math.floor(Math.random() * candidates.length)];
   }
 
-  recentSpawnTypes.push(picked);
-  if (recentSpawnTypes.length > 3) recentSpawnTypes.shift();
+  lastSpawnedCategory = category;
 
-  return picked;
+  // Pick the specific visual variation for the chosen category
+  switch (category) {
+    case 'stone':
+      return 'rock';
+
+    case 'bird':
+      return Math.random() < 0.55 ? 'bird_low' : 'bird_high';
+
+    case 'eagle':
+      return 'eagle';
+
+    case 'cactus': {
+      const roll = Math.random();
+      if (roll < 0.40) return 'cactus_small';
+      if (roll < 0.75) return 'cactus_flower';
+      return 'cactus_tall';
+    }
+  }
 }
 
 export function spawnObstacle(
