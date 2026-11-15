@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   TOTAL_COINS: '@dino_dash_sec_coins_v1',
   SOUND_ENABLED: '@dino_dash_sound_enabled',
   HAPTICS_ENABLED: '@dino_dash_haptics_enabled',
+  TUTORIAL_COMPLETED: '@dino_dash_tutorial_completed_v1',
   // Backward compatibility keys for graceful migration
   LEGACY_COINS: '@dino_dash_real_player_coins_v1',
   LEGACY_SCORE: '@dino_dash_best_score',
@@ -16,6 +17,7 @@ const DEFAULT_DATA: UserPersistedData = {
   totalCoins: 0,
   soundEnabled: true,
   hapticsEnabled: true,
+  tutorialCompleted: false,
 };
 
 // Anti-Cheat: Application Integrity Salt for Hash Signature
@@ -97,6 +99,7 @@ export const StorageManager = {
         legacyCoinsRaw,
         soundRaw,
         hapticsRaw,
+        tutorialRaw,
       ] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.BEST_SCORE),
         AsyncStorage.getItem(STORAGE_KEYS.TOTAL_COINS),
@@ -104,6 +107,7 @@ export const StorageManager = {
         AsyncStorage.getItem(STORAGE_KEYS.LEGACY_COINS),
         AsyncStorage.getItem(STORAGE_KEYS.SOUND_ENABLED),
         AsyncStorage.getItem(STORAGE_KEYS.HAPTICS_ENABLED),
+        AsyncStorage.getItem(STORAGE_KEYS.TUTORIAL_COMPLETED),
       ]);
 
       // Verify authentic secure values, or gracefully migrate legacy clean values
@@ -119,11 +123,15 @@ export const StorageManager = {
         this.persistSecureCoins(totalCoins);
       }
 
+      // If user already had a best score >= 50, they are already proficient / experienced!
+      const isAlreadyExperienced = bestScore >= 50 || (tutorialRaw !== null && tutorialRaw === 'true');
+
       cachedData = {
         bestScore,
         totalCoins,
         soundEnabled: soundRaw !== null ? soundRaw === 'true' : DEFAULT_DATA.soundEnabled,
         hapticsEnabled: hapticsRaw !== null ? hapticsRaw === 'true' : DEFAULT_DATA.hapticsEnabled,
+        tutorialCompleted: isAlreadyExperienced,
       };
 
       return cachedData;
@@ -205,5 +213,18 @@ export const StorageManager = {
     } catch (e) {
       console.warn('[StorageManager] Failed to persist haptics setting', e);
     }
+  },
+
+  async setTutorialCompleted(completed: boolean = true): Promise<void> {
+    cachedData.tutorialCompleted = Boolean(completed);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.TUTORIAL_COMPLETED, completed ? 'true' : 'false');
+    } catch (e) {
+      console.warn('[StorageManager] Failed to persist tutorial completed setting', e);
+    }
+  },
+
+  isTutorialCompleted(): boolean {
+    return Boolean(cachedData.tutorialCompleted || (cachedData.bestScore && cachedData.bestScore >= 50));
   },
 };

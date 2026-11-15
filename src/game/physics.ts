@@ -3,7 +3,7 @@ import { JumpPhase, DinoExpression } from '../types/game';
 export const PHYSICS = {
   GRAVITY: -2250, // px / sec^2 downwards base gravity
   JUMP_FORCE: 820, // px / sec upwards initial jump impulse
-  INITIAL_SPEED: 300, // px / sec
+  INITIAL_SPEED: 260, // px / sec - friendly, accessible starting speed for beginners
   MAX_SPEED: 620, // px / sec
   SPEED_ACCELERATION: 4.0, // px / sec^2
   MAX_DELTA_TIME: 0.033, // 33ms clamp to prevent tunneling through obstacles on frame drop

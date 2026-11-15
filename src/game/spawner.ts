@@ -6,6 +6,7 @@ export type ObstacleCategory = 'stone' | 'bird' | 'cactus' | 'eagle';
 
 let globalRunCounter = 0;
 let lastSpawnedCategory: ObstacleCategory | null = null;
+let lastSpawnedType: ObstacleType | null = null;
 let isFirstSpawnOfRun = true;
 
 export interface SpawnerState {
@@ -28,11 +29,12 @@ export function createInitialSpawnerState(): SpawnerState {
 /**
  * Resets spawner state for each new game run.
  * Increments globalRunCounter so every single game run starts with
- * a DIFFERENT obstacle category!
+ * a DIFFERENT obstacle!
  */
 export function resetSpawnerForNewRun(): void {
   globalRunCounter += 1;
   lastSpawnedCategory = null;
+  lastSpawnedType = null;
   isFirstSpawnOfRun = true;
 }
 
@@ -76,44 +78,98 @@ export function getObstacleDimensions(type: ObstacleType): { width: number; heig
 }
 
 /**
- * Shuffled Category Spawning System:
- * 1. Each new game run starts with a completely different category (Rotating order: Stone -> Bird -> Cactus -> Eagle).
- * 2. Within a run, NEVER spawn two obstacles of the same category back-to-back.
- * This guarantees high variety and maximum user engagement on every run!
+ * Progressive Difficulty Curve & Dynamic Obstacle Selection:
+ * 
+ * 1. Early / Beginner Tier (score < 100):
+ *    - Designed specifically so players immediately feel: "Haan, main khel sakta hoon!"
+ *    - Strictly simple ground hurdles: 'rock' and 'cactus_small'
+ *    - Both have low height and very forgiving jump clearance
+ *    - Alternates strictly between 'rock' and 'cactus_small' (Run 1 starts with 'rock', Run 2 starts with 'cactus_small')
+ *    - NO high birds, NO low birds, NO swooping eagles in this warm-up stage!
+ * 
+ * 2. Intermediate Tier (100 <= score < 250):
+ *    - Introduces 'cactus_flower' (flowered cactus) and 'bird_low' (low pterodactyl to jump over)
+ *    - Categories: ['stone', 'cactus', 'bird']
+ *    - Strictly never spawns the same category twice in a row
+ * 
+ * 3. Advanced / High-Thrill Tier (score >= 250):
+ *    - Full obstacle roster unlocked: 'eagle' (swooping predator), 'bird_high' (overhead bird to duck/run under),
+ *      and 'cactus_tall' (tall cactus)
+ *    - Categories: ['stone', 'bird', 'cactus', 'eagle']
+ *    - Strictly never spawns the same category twice in a row
  */
 export function pickObstacleType(score: number): ObstacleType {
-  const allCategories: ObstacleCategory[] = ['stone', 'bird', 'cactus', 'eagle'];
+  if (score < 100) {
+    // Beginner Tier: Only simple single-ground hurdles
+    if (isFirstSpawnOfRun) {
+      isFirstSpawnOfRun = false;
+      const starterType: ObstacleType = globalRunCounter % 2 === 0 ? 'rock' : 'cactus_small';
+      lastSpawnedCategory = getCategoryForType(starterType);
+      lastSpawnedType = starterType;
+      return starterType;
+    }
 
-  let category: ObstacleCategory;
-
-  if (isFirstSpawnOfRun) {
-    // Rotating starting theme for each new run
-    category = allCategories[globalRunCounter % allCategories.length];
-    isFirstSpawnOfRun = false;
-  } else {
-    // Strictly filter out the last category so no two identical themes appear in a row!
-    const candidates = allCategories.filter((c) => c !== lastSpawnedCategory);
-    category = candidates[Math.floor(Math.random() * candidates.length)];
+    // Alternate between rock and small cactus (guarantees variety + beginner friendliness)
+    const nextType: ObstacleType = lastSpawnedType === 'rock' ? 'cactus_small' : 'rock';
+    lastSpawnedType = nextType;
+    lastSpawnedCategory = getCategoryForType(nextType);
+    return nextType;
   }
 
+  isFirstSpawnOfRun = false;
+
+  if (score < 250) {
+    // Intermediate Tier: Stone, Cactus (small or flower), and Low Flying Bird
+    const midCategories: ObstacleCategory[] = ['stone', 'cactus', 'bird'];
+    const candidates = midCategories.filter((c) => c !== lastSpawnedCategory);
+    const category = candidates[Math.floor(Math.random() * candidates.length)];
+    lastSpawnedCategory = category;
+
+    switch (category) {
+      case 'stone':
+        lastSpawnedType = 'rock';
+        return 'rock';
+      case 'bird':
+        lastSpawnedType = 'bird_low';
+        return 'bird_low';
+      case 'cactus': {
+        const cType: ObstacleType = Math.random() < 0.5 ? 'cactus_small' : 'cactus_flower';
+        lastSpawnedType = cType;
+        return cType;
+      }
+      default:
+        lastSpawnedType = 'rock';
+        return 'rock';
+    }
+  }
+
+  // Advanced Tier: Full obstacle roster with all 4 distinct categories!
+  const allCategories: ObstacleCategory[] = ['stone', 'bird', 'cactus', 'eagle'];
+  const candidates = allCategories.filter((c) => c !== lastSpawnedCategory);
+  const category = candidates[Math.floor(Math.random() * candidates.length)];
   lastSpawnedCategory = category;
 
-  // Pick the specific visual variation for the chosen category
   switch (category) {
     case 'stone':
+      lastSpawnedType = 'rock';
       return 'rock';
 
-    case 'bird':
-      return Math.random() < 0.55 ? 'bird_low' : 'bird_high';
+    case 'bird': {
+      const bType: ObstacleType = Math.random() < 0.55 ? 'bird_low' : 'bird_high';
+      lastSpawnedType = bType;
+      return bType;
+    }
 
     case 'eagle':
+      lastSpawnedType = 'eagle';
       return 'eagle';
 
     case 'cactus': {
       const roll = Math.random();
-      if (roll < 0.40) return 'cactus_small';
-      if (roll < 0.75) return 'cactus_flower';
-      return 'cactus_tall';
+      const cType: ObstacleType =
+        roll < 0.35 ? 'cactus_small' : roll < 0.70 ? 'cactus_flower' : 'cactus_tall';
+      lastSpawnedType = cType;
+      return cType;
     }
   }
 }
@@ -137,11 +193,24 @@ export function spawnObstacle(
     animFrame: 0,
   };
 
-  // Safe minimum distance scaling with speed so the jump is always humanly possible
-  const minSafeDistance = 250 + speed * 0.45;
-  const randomAdditionalGap = Math.random() * 200;
-  const nextGap = minSafeDistance + randomAdditionalGap;
+  let minSafeDistance: number;
+  let randomAdditionalGap: number;
 
+  if (score < 100) {
+    // Beginner Tier: Extra wide, forgiving gaps so the player has plenty of reaction time (2.0s+ between jumps)
+    minSafeDistance = 380 + speed * 0.35;
+    randomAdditionalGap = 50 + Math.random() * 100;
+  } else if (score < 250) {
+    // Intermediate Tier: Moderate comfortable gaps
+    minSafeDistance = 300 + speed * 0.40;
+    randomAdditionalGap = 40 + Math.random() * 120;
+  } else {
+    // Advanced Tier: Dynamic responsive pacing
+    minSafeDistance = 250 + speed * 0.45;
+    randomAdditionalGap = Math.random() * 180;
+  }
+
+  const nextGap = minSafeDistance + randomAdditionalGap;
   return { obstacle, nextGap };
 }
 

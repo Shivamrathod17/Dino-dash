@@ -11,6 +11,7 @@ export default function App() {
 
   const {
     gameState,
+    tutorialStep,
     score,
     bestScore,
     coinsThisRun,
@@ -48,6 +49,7 @@ export default function App() {
         ) : (
           <GamePlayScreen
             gameState={gameState}
+            tutorialStep={tutorialStep}
             score={score}
             bestScore={bestScore}
             coinsThisRun={coinsThisRun}

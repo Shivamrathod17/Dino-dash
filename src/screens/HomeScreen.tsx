@@ -142,7 +142,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <View style={[styles.bottomCardWrapper, { paddingBottom: Math.max(insets.bottom, 16) + 14 }]}>
           <View style={styles.bottomCard}>
             <Text style={styles.panelInstruction}>
-              JUMP OVER OBSTACLES AND SURVIVE
+              {StorageManager.isTutorialCompleted() || bestScore >= 50
+                ? 'JUMP OVER OBSTACLES AND SURVIVE'
+                : '👆 TAP ANYWHERE ON SCREEN TO JUMP!'}
             </Text>
 
             <GameButton

@@ -18,8 +18,10 @@ import { ParallaxBackground } from '../components/ParallaxBackground';
 import { GroundPlatform } from '../components/GroundPlatform';
 import { GameOverModal } from './GameOverModal';
 import { GameButton } from '../components/GameButton';
+import { TutorialOverlay } from '../components/TutorialOverlay';
 import {
   GameState,
+  TutorialStep,
   DinoEntity,
   ObstacleEntity,
   CoinEntity,
@@ -28,6 +30,7 @@ import { PHYSICS } from '../game/physics';
 
 interface GamePlayScreenProps {
   gameState: GameState;
+  tutorialStep?: TutorialStep;
   score: number;
   bestScore: number;
   coinsThisRun: number;
@@ -52,6 +55,7 @@ interface GamePlayScreenProps {
 
 export const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
   gameState,
+  tutorialStep = 'hidden',
   score,
   bestScore,
   coinsThisRun,
@@ -116,6 +120,11 @@ export const GamePlayScreen: React.FC<GamePlayScreenProps> = ({
         <TouchableWithoutFeedback onPress={onJump}>
           <View style={StyleSheet.absoluteFill} />
         </TouchableWithoutFeedback>
+      )}
+
+      {/* 6.1 Interactive Onboarding Hint (Only shows for beginners, auto-dismisses when proficient) */}
+      {isPlaying && (
+        <TutorialOverlay step={tutorialStep} screenHeight={screenHeight} />
       )}
 
       {/* 7. HUD Overlay (Pause button, Coins on Left | Center clear for Camera | Score on Right) */}

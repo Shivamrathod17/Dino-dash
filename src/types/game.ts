@@ -1,5 +1,7 @@
 export type GameState = 'HOME' | 'PLAYING' | 'PAUSED' | 'GAMEOVER';
 
+export type TutorialStep = 'tap_to_jump' | 'good_job' | 'hidden';
+
 export type DinoAnimState = 'idle' | 'running' | 'jumping' | 'falling' | 'landing' | 'gameover';
 
 export type DinoExpression =
@@ -84,4 +86,5 @@ export interface UserPersistedData {
   totalCoins: number;
   soundEnabled: boolean;
   hapticsEnabled: boolean;
+  tutorialCompleted?: boolean;
 }

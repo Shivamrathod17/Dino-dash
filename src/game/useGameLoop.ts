@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import {
   GameState,
+  TutorialStep,
   DinoEntity,
   ObstacleEntity,
   CoinEntity,
@@ -40,6 +41,7 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   const [bestScore, setBestScore] = useState<number>(0);
   const [totalCoins, setTotalCoins] = useState<number>(0);
   const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
+  const [tutorialStep, setTutorialStep] = useState<TutorialStep>('hidden');
 
   // Entities state exposed for rendering
   const [dinoRender, setDinoRender] = useState<DinoEntity>({
@@ -87,6 +89,9 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   const revivesCountRef = useRef<number>(0);
   const [revivesCount, setRevivesCount] = useState<number>(0);
   const coinsBankedThisRunRef = useRef<number>(0);
+  const tutorialStepRef = useRef<TutorialStep>('hidden');
+  tutorialStepRef.current = tutorialStep;
+  const successfulJumpsCountRef = useRef<number>(0);
 
   // Dynamic Revive cost: 100 for 1st, 200 for 2nd, etc. (based on current run coins)
   const reviveCost = (revivesCount + 1) * 100;
@@ -112,6 +117,18 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   const jump = useCallback(() => {
     if (gameStateRef.current !== 'PLAYING') return;
 
+    // Interactive onboarding response: acknowledge tap and encourage player
+    if (tutorialStepRef.current === 'tap_to_jump') {
+      setTutorialStep('good_job');
+      successfulJumpsCountRef.current += 1;
+      setTimeout(() => {
+        setTutorialStep('hidden');
+        if (successfulJumpsCountRef.current >= 2) {
+          StorageManager.setTutorialCompleted(true);
+        }
+      }, 1300);
+    }
+
     if (dinoPhysicsRef.current.isGrounded) {
       dinoPhysicsRef.current = triggerJump(dinoPhysicsRef.current);
       AudioManager.playJump();
@@ -126,6 +143,7 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   const handleGameOver = useCallback(() => {
     if (gameStateRef.current === 'GAMEOVER') return;
 
+    setTutorialStep('hidden');
     gameStateRef.current = 'GAMEOVER';
     setGameState('GAMEOVER');
 
@@ -166,6 +184,13 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
     revivesCountRef.current = 0;
     setRevivesCount(0);
     coinsBankedThisRunRef.current = 0;
+
+    successfulJumpsCountRef.current = 0;
+    if (StorageManager.isTutorialCompleted()) {
+      setTutorialStep('hidden');
+    } else {
+      setTutorialStep('tap_to_jump');
+    }
 
     jumpBufferTimerRef.current = 0;
     dinoPhysicsRef.current = createInitialDinoPhysics();
@@ -228,6 +253,7 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
   // Go to Home
   const returnToHome = useCallback(() => {
     AudioManager.playButton();
+    setTutorialStep('hidden');
     resetSpawnerForNewRun();
     jumpBufferTimerRef.current = 0;
     revivesCountRef.current = 0;
@@ -337,17 +363,37 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
         lastTimeRef.current = timestamp;
         const dt = Math.min(rawDt, PHYSICS.MAX_DELTA_TIME);
 
-        // 1. Update Speed & Distance with Anti-Speedhack clamp
+        // 1. Update Speed & Distance with progressive difficulty curve & Anti-Speedhack clamp
         const stats = statsRef.current;
+        let currentAccel: number;
+        if (stats.score < 100) {
+          // Beginner phase: gentle speed increase (comfortable and forgiving)
+          currentAccel = 1.0;
+        } else if (stats.score < 250) {
+          // Intermediate phase: smooth ramp up
+          currentAccel = 2.6;
+        } else {
+          // Advanced phase: energetic speed acceleration
+          currentAccel = PHYSICS.SPEED_ACCELERATION;
+        }
+
         stats.speed = Math.min(
           PHYSICS.MAX_SPEED,
-          stats.speed + PHYSICS.SPEED_ACCELERATION * dt
+          stats.speed + currentAccel * dt
         );
         const maxAllowedDelta = PHYSICS.MAX_SPEED * PHYSICS.MAX_DELTA_TIME * 1.5;
         const moveDist = Math.min(stats.speed * dt, maxAllowedDelta);
         stats.distance += moveDist;
         stats.score = stats.distance / 10;
         setScore(Math.floor(stats.score));
+
+        // Auto-complete onboarding tutorial when user reaches score 40+ (shows they are proficient!)
+        if (!StorageManager.isTutorialCompleted() && stats.score >= 40) {
+          StorageManager.setTutorialCompleted(true);
+          if (tutorialStepRef.current !== 'hidden') {
+            setTutorialStep('hidden');
+          }
+        }
 
         // 2. Update Ground Parallax
         groundOffsetRef.current = (groundOffsetRef.current + moveDist) % 600;
@@ -390,7 +436,18 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
           const obstacleCenterX = spawnX + obstacle.width / 2;
 
           // Spawn coins synchronized with player path
-          if (obstacle.type === 'bird_high') {
+          if (stats.score < 100) {
+            // Beginner Tier: ALWAYS spawn 5-coin jump arc over the hurdle for rewarding jumps!
+            const coinGroup = spawnJumpArcCoins(obstacleCenterX, obstacle.height);
+            coinsRef.current.push(...coinGroup);
+
+            // In wide open gaps between obstacles, spawn ground coins to collect while running
+            if (nextGap > 420) {
+              const groundCoinsX = spawnX + obstacle.width + 120;
+              const groundGroup = spawnGroundRunCoins(groundCoinsX, 3);
+              coinsRef.current.push(...groundGroup);
+            }
+          } else if (obstacle.type === 'bird_high') {
             // High flying bird: player runs safely under, spawn ground coins beneath
             const groundCoinsX = spawnX + obstacle.width / 2 - 42;
             const groundGroup = spawnGroundRunCoins(groundCoinsX, 3);
@@ -548,6 +605,7 @@ export function useGameLoop({ screenWidth, screenHeight }: UseGameLoopOptions) {
 
   return {
     gameState,
+    tutorialStep,
     score,
     bestScore,
     coinsThisRun,
