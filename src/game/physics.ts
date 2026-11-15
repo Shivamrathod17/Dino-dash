@@ -1,8 +1,8 @@
 import { JumpPhase, DinoExpression } from '../types/game';
 
 export const PHYSICS = {
-  GRAVITY: -2250, // px / sec^2 downwards base gravity
-  JUMP_FORCE: 820, // px / sec upwards initial jump impulse
+  GRAVITY: -2150, // px / sec^2 downwards base gravity (tuned for smooth, graceful jump arc)
+  JUMP_FORCE: 875, // px / sec upwards initial jump impulse (increased jump distance and reach)
   INITIAL_SPEED: 260, // px / sec - friendly, accessible starting speed for beginners
   MAX_SPEED: 620, // px / sec
   SPEED_ACCELERATION: 4.0, // px / sec^2
@@ -118,7 +118,7 @@ export function updateDinoPhysics(
       if (onLand) onLand();
     } else {
       // Distinct, natural jump flight phases:
-      if (newVy > 660) {
+      if (newVy > 700) {
         // Phase 1: Launch Extension (initial takeoff thrust)
         state = 'jumping';
         jumpPhase = 'launch';
